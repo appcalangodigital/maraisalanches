@@ -953,7 +953,7 @@ header{position:relative}
 
             const itensPedido = [];
             Object.keys(cart).forEach(id => { if (cart[id].qty > 0) { const it = allItems.find(i => i.id == id); if (it) itensPedido.push({ k: 'lanches', n: it.name, q: cart[id].qty, p: it.price }); } });
-            marmitas.forEach(m => itensPedido.push({ k: 'marmitas', n: 'Marmita (' + m.type + '): ' + m.mains.join(' + '), q: 1, p: m.price }));
+            marmitas.forEach(m => itensPedido.push({ k: 'marmitas', n: 'Marmita (' + m.type + '): ' + m.mains.join(' + ') + (m.sides.length ? ' | Acomp: ' + m.sides.join(', ') : ''), q: 1, p: m.price }));
             const totalNum = itensPedido.reduce((a, i) => a + i.q * i.p, 0);
             if (!API.startsWith('COLE')) fetch(API, { method: 'POST', keepalive: true, body: JSON.stringify({ a: 'pedido', cliente: name, endereco: address, pag: payment, total: totalNum, itens: itensPedido }) }).catch(() => {});
             const phone = "5585986357437";
@@ -973,8 +973,8 @@ let pin=ls.get(),K='lanches',M=null,iv,ativo=false,E={lanches:{},marmitas:{}},P=
 
 let seen=new Set(),AC;
 const ids=()=>['lanches','marmitas'].flatMap(k=>P[k].filter(o=>o.status!=='feito').map(o=>o.id));
-function marca(){seen=new Set(ids())}
-function chk(){const n=ids().filter(i=>!seen.has(i));seen=new Set(ids());if(n.length)sino()}
+function marca(){merge();seen=new Set(ids())}
+function chk(){merge();const n=ids().filter(i=>!seen.has(i));seen=new Set(ids());if(n.length)sino()}
 function ac(){if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(C)AC=new C()}if(AC&&AC.state==='suspended')AC.resume();return AC}
 function toque(t){const m=AC.createDynamicsCompressor(),g=AC.createGain();g.gain.value=1.6;m.connect(g);g.connect(AC.destination);[[880,.55,'triangle'],[2430,.35,'sine'],[4750,.2,'sine'],[7860,.12,'sine']].forEach(([f,v,w])=>{const o=AC.createOscillator(),e=AC.createGain();o.type=w;o.frequency.value=f;e.gain.setValueAtTime(0,t);e.gain.linearRampToValueAtTime(v,t+.01);e.gain.exponentialRampToValueAtTime(.001,t+1.5);o.connect(e);e.connect(m);o.start(t);o.stop(t+1.6)})}
 function sino(){if(!ac())return;for(let i=0;i<5;i++)toque(AC.currentTime+i*1.1);try{navigator.vibrate&&navigator.vibrate([500,200,500,200,500])}catch(e){}}
@@ -992,7 +992,7 @@ function rK(){['lanches','marmitas'].forEach(k=>{const n=pend(k).length;$('k_'+k
 function rS(){const e=E[K],a=e.aberta,p=e.pausada;$('stt').style.background=!a?'#444':p?'#b26a00':'#1b5e20';$('stt').textContent='COZINHA DE '+K.toUpperCase()+(!a?' FECHADA':p?' PAUSADA':' ABERTA');
 $('ctl').innerHTML=!a?'<button class="v" onclick="est(\'abrir\')">Abrir cozinha</button>':`<button class="b" onclick="est('${p?'retomar':'pausar'}')">${p?'Retomar produção':'Pausar produção'}</button><button class="r" onclick="fechar()">Fechar o dia</button>`}
 async function est(x){const j=await api('estado',{x,k:K});E=j.estado;rK();rS();poll()}
-function fechar(){const n=pend(K).length;confirmar(n?`Há ${n} pedido(s) pendente(s). Serão finalizados e incluídos no relatório. Fechar a cozinha de ${K}?`:`Fechar a cozinha de ${K} e gerar o relatório?`,async()=>{const j=await api('estado',{x:'fechar',k:K});E=j.estado;R[K]=j.relatorio;P[K]=P[K].map(o=>({...o,status:'feito'}));rK();rS();rP();rel(R[K]);aba(3)})}
+function fechar(){const n=pend(K).length;confirmar(n?`Há ${n} pedido(s) pendente(s). Serão finalizados e incluídos no relatório. Fechar a cozinha de ${K}?`:`Fechar a cozinha de ${K} e gerar o relatório?`,async()=>{const j=await api('estado',{x:'fechar',k:K});E=j.estado;R[K]=j.relatorio;P[K]=P[K].map(o=>({...o,status:'feito'}));rK();rS();rP();per='fech';rel();aba(3)})}
 function rM(){const mm=K=='marmitas';$('t1').innerHTML=(mm?'<div class="card"><small>Cadastre os alimentos e toque em <b>Liberar</b> nos que entram nos pratos de hoje. Só os liberados aparecem para o cliente.</small></div>':'')+M.cats.filter(c=>mm?c.tipo:!c.tipo).map(c=>`<details ${op.has(c.id)?'open':''} ontoggle="tg(this,'${c.id}')"><summary>${c.nome}${c.tipo?' · '+c.itens.filter(i=>i.lib).length+' liberados':''}</summary>${c.itens.map((i,k)=>row(c,i,k)).join('')}<div class="it" style="background:#181818"><input class="n" id="nn${c.id}" placeholder="Novo item">${c.tipo?'':`<input class="p" id="np${c.id}" type="number" step="0.5" placeholder="R$"><input class="d" id="nd${c.id}" placeholder="Descrição (opcional)">`}<button class="b" onclick="add('${c.id}')">+</button></div></details>`).join('')+(mm?`<button class="k" style="width:100%;margin-bottom:10px" onclick="limpar()">Desmarcar todos os liberados</button><div class="card"><b>Preço da marmita</b><div class="row"><div><small>1 opção</small><input type="number" value="${M.p1}" onchange="setP(1,this.value)"></div><div><small>2 opções</small><input type="number" value="${M.p2}" onchange="setP(2,this.value)"></div></div></div>`:'')}
 const row=(c,i,k)=>c.tipo?`<div class="it"><input class="n" value="${esc(i.name)}" onchange="ed('${c.id}',${k},'name',this.value)"><button class="${i.lib?'v':'k'}" onclick="lib('${c.id}',${k})">${i.lib?'✔ Liberado':'Liberar'}</button><button class="r" onclick="del('${c.id}',${k})">✕</button></div>`:`<div class="it ${i.pausado?'off':''}"><input class="n" value="${esc(i.name)}" onchange="ed('${c.id}',${k},'name',this.value)"><input class="p" type="number" step="0.5" value="${i.price}" onchange="ed('${c.id}',${k},'price',+this.value)"><button class="k" onclick="ps('${c.id}',${k})">${i.pausado?'▶':'⏸'}</button><button class="r" onclick="del('${c.id}',${k})">✕</button><input class="d" value="${esc(i.desc)}" placeholder="descrição" onchange="ed('${c.id}',${k},'desc',this.value)"></div>`;
 const cat=id=>M.cats.find(c=>c.id==id);
@@ -1006,8 +1006,44 @@ ct.itens.push(ct.tipo?{id,name:n,lib:false}:{id,name:n,desc:$('nd'+c).value.trim
 function sv(){clearTimeout(T);$('sv').textContent='Salvando...';T=setTimeout(async()=>{try{await api('menu',{menu:M});$('sv').textContent='Salvo ✓'}catch(e){$('sv').textContent='Erro ao salvar'}},600)}
 function rP(){const L=pend(K);$('t2').innerHTML=L.length?L.slice().reverse().map(o=>`<div class="card" style="display:flex;gap:10px;align-items:center"><div style="flex:1;min-width:0"><b>${o.cliente}</b> · ${new Date(o.ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}<br><small>${o.endereco}</small><br>${o.itens.map(i=>i.q+'x '+i.n).join('<br>')}<br><b style="color:var(--g)">${brl(o.total)}</b> <small>${o.pag}</small></div><button class="v" title="Finalizado" aria-label="Finalizado" style="flex:none;width:48px;height:48px;border-radius:50%;padding:0;font-size:1.4rem" onclick="fin('${o.id}')">✓</button></div>`).join(''):'<p>Nenhum pedido pendente.</p>'}
 async function fin(id){const j=await api('finalizar',{id,k:K});P[K]=j.pedidos;rK();rP();R[K]=(await api('relatorio',{k:K})).relatorio;rel(R[K])}
-function rel(r){$('t3').innerHTML=(r?`<div class="card"><b>Relatório de ${K}</b><br><small>${new Date(r.ini).toLocaleString()} até ${new Date(r.fim).toLocaleString()}</small><br>${r.auto?'<small>Fechado automaticamente à meia-noite</small><br>':''}<small>Total de vendas</small><h2 style="color:var(--g)">${brl(r.total)}</h2>${r.n} pedidos · ticket médio ${brl(r.n?r.total/r.n:0)}</div><div class="card"><b>Por pagamento</b>${Object.entries(r.pag).map(([k,v])=>`<br>${k}: ${brl(v)}`).join('')}</div><div class="card"><b>Itens vendidos</b>${r.itens.map(i=>`<br>${i.q}x ${i.n} <small>${brl(i.v)}</small>`).join('')}</div><div class="card"><b>Pedidos finalizados</b>${(r.lista||[]).map(o=>`<br>${new Date(o.ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} ${o.cliente} · ${o.pag} · ${brl(o.total)}`).join('')}</div><button class="v" style="width:100%;margin-bottom:10px" onclick="zap()">Enviar por WhatsApp</button>`:'<p>Nenhum relatório ainda.</p>')+'<button class="k" style="width:100%" onclick="parcial()">Ver parcial do turno</button>'}
-async function parcial(){R[K]=(await api('relatorio',{k:K})).relatorio;rel(R[K])}
+function relFech(r){return (r?`<div class="card"><b>Relatório de ${K}</b><br><small>${new Date(r.ini).toLocaleString()} até ${new Date(r.fim).toLocaleString()}</small><br>${r.auto?'<small>Fechado automaticamente à meia-noite</small><br>':''}<small>Total de vendas</small><h2 style="color:var(--g)">${brl(r.total)}</h2>${r.n} pedidos · ticket médio ${brl(r.n?r.total/r.n:0)}</div><div class="card"><b>Por pagamento</b>${Object.entries(r.pag).map(([k,v])=>`<br>${k}: ${brl(v)}`).join('')}</div><div class="card"><b>Itens vendidos</b>${r.itens.map(i=>`<br>${i.q}x ${i.n} <small>${brl(i.v)}</small>`).join('')}</div><div class="card"><b>Pedidos finalizados</b>${(r.lista||[]).map(o=>`<br>${new Date(o.ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} ${o.cliente} · ${o.pag} · ${brl(o.total)}`).join('')}</div><button class="v" style="width:100%;margin-bottom:10px" onclick="zap()">Enviar por WhatsApp</button>`:'<p>Nenhum relatório ainda.</p>')}
+const HK='mlhist',DS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],PER=[['parcial','Parcial do turno'],['hoje','Hoje'],['7','7 dias'],['30','30 dias'],['tudo','Tudo'],['fech','Último fechamento']];
+let H={},per='parcial',lastTxt='';
+try{H=JSON.parse(localStorage.getItem(HK)||'{}')||{}}catch(e){H={}}
+function merge(){let ch=false;['lanches','marmitas'].forEach(k=>(P[k]||[]).forEach(o=>{if(!o||!o.id)return;const key=k+':'+o.id,x=H[key];if(!x||x.st!==o.status||(!x.it&&o.itens)){H[key]={k:k,ts:o.ts,pag:o.pag,st:o.status,it:o.itens};ch=true}}));if(ch)try{localStorage.setItem(HK,JSON.stringify(H))}catch(e){}}
+async function histRemoto(){try{const j=await api('historico');if(!Array.isArray(j.pedidos))return;j.pedidos.forEach(o=>{const k=String(o.sessao||'')[0]==='m'?'marmitas':'lanches';H[k+':'+o.id]={k:k,ts:o.ts,pag:o.pag,st:o.status,it:o.itens}});try{localStorage.setItem(HK,JSON.stringify(H))}catch(e){}}catch(e){}}
+async function setPer(p){per=p;rel();if(p!=='parcial'&&p!=='fech'){await histRemoto();rel()}}
+function lista(){if(per==='parcial'){const e=E[K];if(!e.aberta)return null;return (P[K]||[]).filter(o=>!e.ini||new Date(o.ts)>=new Date(e.ini)).map(o=>({ts:o.ts,pag:o.pag,it:o.itens}))}
+const now=Date.now(),lim=per==='7'?now-6048e5:per==='30'?now-2592e6:0;
+return Object.values(H).filter(x=>x.k===K&&(per==='tudo'||(per==='hoje'?dia(x.ts)==dia(now):new Date(x.ts)>=lim)))}
+function calc(L){const r={n:0,tot:0,pag:{},it:{},pr:{},ac:{},tp:{},wd:[0,0,0,0,0,0,0],wv:[0,0,0,0,0,0,0],hr:{},mq:0,sa:0};
+L.forEach(x=>{const its=(x.it||[]).filter(i=>!i.k||i.k===K);if(!its.length)return;const v=its.reduce((a,i)=>a+i.q*i.p,0),d=new Date(x.ts);r.n++;r.tot+=v;r.pag[x.pag]=(r.pag[x.pag]||0)+v;r.wd[d.getDay()]++;r.wv[d.getDay()]+=v;r.hr[d.getHours()]=(r.hr[d.getHours()]||0)+1;
+its.forEach(i=>{if(K==='lanches'){const z=r.it[i.n]||(r.it[i.n]={q:0,v:0});z.q+=i.q;z.v+=i.q*i.p}else{r.mq+=i.q;const m=/^Marmita \((.*?)\):\s*(.*)$/.exec(i.n);if(!m)return;const pa=m[2].split(' | Acomp: ');r.tp[m[1]]=(r.tp[m[1]]||0)+i.q;pa[0].split(' + ').forEach(p=>r.pr[p]=(r.pr[p]||0)+i.q);if(pa[1])pa[1].split(', ').forEach(c=>r.ac[c]=(r.ac[c]||0)+i.q);else r.sa+=i.q}})});return r}
+const arr=(o,f)=>Object.entries(o).map(([n,z])=>f?{n,q:z.q,v:z.v}:{n,q:z}).sort((a,b)=>b.q-a.q);
+function rk(t,a,tq){if(!a.length)return '';const mx=a[0].q;return `<div class="card"><b>${t}</b>${a.map(x=>`<div style="margin-top:8px"><div style="display:flex;justify-content:space-between;gap:8px"><span>${x.n}</span><span><b>${x.q}</b>${x.v!=null?' · '+brl(x.v):''} <small>${Math.round(x.q/tq*100)}%</small></span></div><div style="height:6px;background:#333;border-radius:4px;margin-top:3px"><div style="width:${Math.max(3,x.q/mx*100)}%;height:100%;background:var(--g);border-radius:4px"></div></div></div>`).join('')}</div>`}
+function zapTxt(){window.open('https://api.whatsapp.com/send?text='+encodeURIComponent(lastTxt),'_blank')}
+function rel(){const chips=`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${PER.map(([k,n])=>`<button class="${per==k?'b':'k'}" style="flex:none;padding:8px 12px;font-size:.85rem" onclick="setPer('${k}')">${n}</button>`).join('')}</div>`;
+if(per==='fech'){$('t3').innerHTML=chips+relFech(R[K]);return}
+const nome=PER.find(p=>p[0]==per)[1],L=lista();
+if(L===null){$('t3').innerHTML=chips+'<div class="card">Nenhum turno em andamento. A cozinha de '+K+' está fechada. Abra a cozinha para ver a parcial, ou escolha um período acima.</div>';return}
+const r=calc(L);
+if(!r.n){$('t3').innerHTML=chips+'<div class="card">Nenhum pedido em <b>'+nome+'</b> na cozinha de '+K+'.</div>';return}
+let h=`<div class="card"><b>${K==='lanches'?'Lanches':'Marmitas'} · ${nome}</b><br><small>Total de vendas</small><h2 style="color:var(--g)">${brl(r.tot)}</h2>${r.n} pedidos · ticket médio ${brl(r.tot/r.n)}</div>`;
+let t=`*RELATÓRIO M&L (${K}) - ${nome}*\n\n*Vendas:* ${brl(r.tot)}\n*Pedidos:* ${r.n}\n`;
+if(K==='lanches'){const a=arr(r.it,1),tq=a.reduce((s,x)=>s+x.q,0);h+=rk('Mais vendidos por sabor',a,tq);t+='\n*Por sabor*\n'+a.map(x=>x.q+'x '+x.n).join('\n');
+const vend=new Set(a.map(x=>x.n)),sem=(M.cats||[]).filter(c=>!c.tipo).flatMap(c=>c.itens).map(i=>i.name).filter(n=>!vend.has(n));
+if(sem.length&&per!=='parcial')h+=`<div class="card"><b>Sem nenhuma venda no período</b><br><small>${sem.join(' · ')}</small></div>`}
+else{h+=rk('Tipos de marmita',arr(r.tp),r.mq);const pr=arr(r.pr),ac=arr(r.ac);h+=rk('Pratos principais',pr,pr.reduce((s,x)=>s+x.q,0));h+=rk('Acompanhamentos',ac,r.mq-r.sa||1);
+if(r.sa)h+=`<div class="card"><small>${r.sa} marmita(s) sem acompanhamento registrado (pedidos antigos ou sem escolha).</small></div>`;
+t+='\n*Pratos*\n'+pr.map(x=>x.q+'x '+x.n).join('\n')+'\n\n*Acompanhamentos*\n'+ac.map(x=>x.q+'x '+x.n).join('\n');
+const vend=new Set(Object.keys(r.pr).concat(Object.keys(r.ac))),sem=(M.cats||[]).filter(c=>c.tipo).flatMap(c=>c.itens).filter(i=>i.lib).map(i=>i.name).filter(n=>!vend.has(n));
+if(sem.length&&per!=='parcial')h+=`<div class="card"><b>Liberados sem nenhuma venda</b><br><small>${sem.join(' · ')}</small></div>`}
+h+=`<div class="card"><b>Por pagamento</b>${Object.entries(r.pag).map(([k,v])=>`<br>${k}: ${brl(v)}`).join('')}</div>`;
+if(per==='7'||per==='30'||per==='tudo'){const mx=Math.max(...r.wd,1);h+=`<div class="card"><b>Pedidos por dia da semana</b>${r.wd.map((q,i)=>`<div style="display:flex;align-items:center;gap:8px;margin-top:6px"><span style="width:34px">${DS[i]}</span><div style="flex:1;height:8px;background:#333;border-radius:4px"><div style="width:${q/mx*100}%;height:100%;background:var(--g);border-radius:4px"></div></div><span style="width:90px;text-align:right"><b>${q}</b> · ${brl(r.wv[i])}</span></div>`).join('')}</div>`;
+const hs=Object.entries(r.hr).sort((a,b)=>b[1]-a[1]).slice(0,3);h+=`<div class="card"><b>Horários de pico</b>${hs.map(([hh,q])=>`<br>${hh}h às ${+hh+1}h: ${q} pedidos`).join('')}</div>`}
+lastTxt=t;h+='<button class="v" style="width:100%;margin-bottom:10px" onclick="zapTxt()">Enviar por WhatsApp</button>';
+$('t3').innerHTML=chips+h}
+function parcial(){setPer('parcial')}
 function zap(){const r=R[K];let t=`*RELATÓRIO M&L PASTEL (${K})*\n${new Date(r.ini).toLocaleDateString()}\n\n*Total de vendas:* ${brl(r.total)}\n*Pedidos:* ${r.n}\n\n`+Object.entries(r.pag).map(([k,v])=>`${k}: ${brl(v)}`).join('\n')+'\n\n*Itens*\n'+r.itens.map(i=>`${i.q}x ${i.n}`).join('\n');window.open('https://api.whatsapp.com/send?text='+encodeURIComponent(t),'_blank')}
 
 function tg(el,id){el.open?op.add(id):op.delete(id)}
@@ -1016,7 +1052,7 @@ function abrirAdmin(){$('adm').classList.add('on');document.body.style.overflow=
 function fecharAdmin(){$('adm').classList.remove('on');document.body.style.overflow='';if(typeof carregar=='function')carregar()}
 function sair(){confirmar('Sair do painel neste aparelho?',()=>{ls.set(pin='');ativo=false;clearInterval(iv);$('pin').value='';$('lg').hidden=false})}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ativo)poll()});
-Object.assign(window,{sino,abrirAdmin,fecharAdmin,sair,entrar,setK,aba,est,fechar,ed,ps,lib,limpar,del,add,fin,parcial,zap,tg,setP});
+Object.assign(window,{setPer,zapTxt,sino,abrirAdmin,fecharAdmin,sair,entrar,setK,aba,est,fechar,ed,ps,lib,limpar,del,add,fin,parcial,zap,tg,setP});
 })();
 </script>
 <script>window.addEventListener("load",function(){if(LOJ){abrirAdmin()}})</script>
