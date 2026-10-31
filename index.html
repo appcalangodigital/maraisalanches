@@ -1061,7 +1061,7 @@ Object.assign(window,{setPer,zapTxt,sino,abrirAdmin,fecharAdmin,sair,entrar,setK
 <script>
 (function(){var dp,b=document.getElementById(LOJ?'inst':'btn-cli');
 if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone)return;
-b.style.display=LOJ?'block':'inline-block';
+b.style.display=LOJ?'block':'inline-block';if(LOJ){b.textContent='📲 Baixar app lojista';b.style.zIndex='2147483647';b.style.left='50%';b.style.transform='translateX(-50%)';b.style.bottom='28px';b.style.background='#ffb020';b.style.color='#000';b.style.fontWeight='bold';b.style.whiteSpace='nowrap'}
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e});
 b.onclick=function(){if(dp){dp.prompt();dp=null}else{alert(/iPhone|iPad/.test(navigator.userAgent)?'No iPhone: toque no botão Compartilhar (quadrado com seta) e depois em "Adicionar à Tela de Início".':'No Android: toque nos 3 pontinhos do navegador e depois em "Instalar app" ou "Adicionar à tela inicial".')}};
 window.addEventListener('appinstalled',function(){b.style.display='none'});
