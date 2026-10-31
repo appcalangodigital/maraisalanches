@@ -625,6 +625,7 @@ header{position:relative}
 <div class="sw"><button id="k_lanches" onclick="setK('lanches')"></button><button id="k_marmitas" onclick="setK('marmitas')"></button></div>
 <div id="stt" class="st"></div><div id="ctl" class="row"></div>
 <div class="tabs"><button class="on" onclick="aba(1)">Cardápio</button><button onclick="aba(2)">Pedidos</button><button onclick="aba(3)">Relatório</button></div>
+<button class="b" style="width:100%;margin:8px 0" onclick="sino()">🔔 Testar sino</button>
 <div id="t1"></div><div id="t2" hidden></div><div id="t3" hidden></div>
 </div><div id="sv"></div>
 </div>
@@ -941,10 +942,19 @@ header{position:relative}
 (function(){
 const ls={get:()=>{try{return localStorage.getItem('mlpin')||''}catch(e){return ''}},set:v=>{try{v?localStorage.setItem('mlpin',v):localStorage.removeItem('mlpin')}catch(e){}}};
 let pin=ls.get(),K='lanches',M=null,iv,ativo=false,E={lanches:{},marmitas:{}},P={lanches:[],marmitas:[]},R={},T,op=new Set();
+
+let seen=new Set(),AC;
+const ids=()=>['lanches','marmitas'].flatMap(k=>P[k].filter(o=>o.status!=='feito').map(o=>o.id));
+function marca(){seen=new Set(ids())}
+function chk(){const n=ids().filter(i=>!seen.has(i));seen=new Set(ids());if(n.length)sino()}
+function ac(){if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(C)AC=new C()}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function toque(t){const m=AC.createDynamicsCompressor(),g=AC.createGain();g.gain.value=1.6;m.connect(g);g.connect(AC.destination);[[880,.55,'triangle'],[2430,.35,'sine'],[4750,.2,'sine'],[7860,.12,'sine']].forEach(([f,v,w])=>{const o=AC.createOscillator(),e=AC.createGain();o.type=w;o.frequency.value=f;e.gain.setValueAtTime(0,t);e.gain.linearRampToValueAtTime(v,t+.01);e.gain.exponentialRampToValueAtTime(.001,t+1.5);o.connect(e);e.connect(m);o.start(t);o.stop(t+1.6)})}
+function sino(){if(!ac())return;for(let i=0;i<5;i++)toque(AC.currentTime+i*1.1);try{navigator.vibrate&&navigator.vibrate([500,200,500,200,500])}catch(e){}}
+['click','touchstart'].forEach(e=>document.addEventListener(e,ac));
 const $=id=>document.getElementById(id),brl=v=>'R$ '+Number(v||0).toFixed(2).replace('.',','),esc=s=>String(s||'').replace(/"/g,'&quot;');
 async function api(a,d={}){const j=await(await fetch(API,{method:'POST',body:JSON.stringify({a,pin,...d})})).json();if(j.erro==='pin'){ls.set(pin='');$('lg').hidden=false;$('lge').textContent='PIN incorreto';throw 0}return j}
-async function entrar(auto){if(!auto)pin=$('pin').value;$('lge').textContent='';try{const j=await api('ver');ls.set(pin);ativo=true;$('lg').hidden=true;M=j.menu||JSON.parse(JSON.stringify(MENU));E=j.estado;P=j.pedidos;R=j.ultimo||{};draw();clearInterval(iv);iv=setInterval(poll,20000)}catch(e){if(e!==0)$('lge').textContent='Sem conexão. Tente de novo.'}}
-async function poll(){try{const j=await api('ver');E=j.estado;P=j.pedidos;['lanches','marmitas'].forEach(k=>{if(!E[k].aberta&&j.ultimo&&j.ultimo[k])R[k]=j.ultimo[k]});rK();rS();rP();rel(R[K])}catch(e){}}
+async function entrar(auto){if(!auto)pin=$('pin').value;$('lge').textContent='';try{const j=await api('ver');ls.set(pin);ativo=true;$('lg').hidden=true;M=j.menu||JSON.parse(JSON.stringify(MENU));E=j.estado;P=j.pedidos;R=j.ultimo||{};marca();draw();clearInterval(iv);iv=setInterval(poll,10000)}catch(e){if(e!==0)$('lge').textContent='Sem conexão. Tente de novo.'}}
+async function poll(){try{const j=await api('ver');E=j.estado;P=j.pedidos;chk();['lanches','marmitas'].forEach(k=>{if(!E[k].aberta&&j.ultimo&&j.ultimo[k])R[k]=j.ultimo[k]});rK();rS();rP();rel(R[K])}catch(e){}}
 function draw(){rK();rS();rM();rP();rel(R[K])}
 function setK(k){K=k;draw()}
 function aba(n){[1,2,3].forEach(i=>{$('t'+i).hidden=i!=n;document.querySelectorAll('.tabs button')[i-1].className=i==n?'on':''})}
@@ -978,7 +988,7 @@ function abrirAdmin(){$('adm').classList.add('on');document.body.style.overflow=
 function fecharAdmin(){$('adm').classList.remove('on');document.body.style.overflow='';if(typeof carregar=='function')carregar()}
 function sair(){if(!confirm('Sair do painel neste aparelho?'))return;ls.set(pin='');ativo=false;clearInterval(iv);$('pin').value='';$('lg').hidden=false}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ativo)poll()});
-Object.assign(window,{abrirAdmin,fecharAdmin,sair,entrar,setK,aba,est,fechar,ed,ps,lib,limpar,del,add,fin,parcial,zap,tg,setP});
+Object.assign(window,{sino,abrirAdmin,fecharAdmin,sair,entrar,setK,aba,est,fechar,ed,ps,lib,limpar,del,add,fin,parcial,zap,tg,setP});
 })();
 </script>
 </body>
