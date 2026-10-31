@@ -600,12 +600,13 @@ header{position:relative}
     </div>
 
     <!-- MODAL PERSONALIZADO -->
-    <div id="custom-modal" class="custom-modal-overlay">
+    <div id="custom-modal" class="custom-modal-overlay" style="z-index:2147483647">
         <div class="custom-modal">
             <div class="modal-logo">M&L</div>
-            <div class="modal-subtitle">Pastel</div>
+            <div class="modal-subtitle">Lanches</div>
             <div class="modal-message" id="modal-msg-text">Mensagem...</div>
-            <button class="modal-btn" onclick="closeCustomAlert()">OK</button>
+            <button id="modal-ok" class="modal-btn" onclick="closeCustomAlert()">OK</button>
+            <button id="modal-cancel" class="modal-btn" style="display:none;margin-top:8px;background:#444;color:#fff" onclick="closeCustomAlert()">Cancelar</button>
         </div>
     </div>
 
@@ -643,11 +644,22 @@ header{position:relative}
 
         function showCustomAlert(msg) {
             document.getElementById('modal-msg-text').innerText = msg;
+            document.getElementById('modal-cancel').style.display = 'none';
+            document.getElementById('modal-ok').onclick = closeCustomAlert;
             document.getElementById('custom-modal').classList.add('active');
         }
 
         function closeCustomAlert() {
             document.getElementById('custom-modal').classList.remove('active');
+            document.getElementById('modal-cancel').style.display = 'none';
+            document.getElementById('modal-ok').onclick = closeCustomAlert;
+        }
+
+        function confirmar(msg, cb) {
+            document.getElementById('modal-msg-text').innerText = msg;
+            document.getElementById('modal-cancel').style.display = 'block';
+            document.getElementById('modal-ok').onclick = function () { closeCustomAlert(); cb(); };
+            document.getElementById('custom-modal').classList.add('active');
         }
 
         const API = "https://script.google.com/macros/s/AKfycbxNuRkn9guPHzJs2glWAUj5OYaRZ3ib-7cW_Ucfuw0TaugUcP_dN3KYANecvPjjQI3q/exec";
@@ -966,7 +978,7 @@ function rK(){['lanches','marmitas'].forEach(k=>{const n=pend(k).length;$('k_'+k
 function rS(){const e=E[K],a=e.aberta,p=e.pausada;$('stt').style.background=!a?'#444':p?'#b26a00':'#1b5e20';$('stt').textContent='COZINHA DE '+K.toUpperCase()+(!a?' FECHADA':p?' PAUSADA':' ABERTA');
 $('ctl').innerHTML=!a?'<button class="v" onclick="est(\'abrir\')">Abrir cozinha</button>':`<button class="b" onclick="est('${p?'retomar':'pausar'}')">${p?'Retomar produção':'Pausar produção'}</button><button class="r" onclick="fechar()">Fechar o dia</button>`}
 async function est(x){const j=await api('estado',{x,k:K});E=j.estado;rK();rS();poll()}
-async function fechar(){const n=pend(K).length;if(!confirm(n?`Há ${n} pedido(s) pendente(s). Serão finalizados e incluídos no relatório. Fechar a cozinha de ${K}?`:`Fechar a cozinha de ${K} e gerar o relatório?`))return;const j=await api('estado',{x:'fechar',k:K});E=j.estado;R[K]=j.relatorio;P[K]=P[K].map(o=>({...o,status:'feito'}));rK();rS();rP();rel(R[K]);aba(3)}
+function fechar(){const n=pend(K).length;confirmar(n?`Há ${n} pedido(s) pendente(s). Serão finalizados e incluídos no relatório. Fechar a cozinha de ${K}?`:`Fechar a cozinha de ${K} e gerar o relatório?`,async()=>{const j=await api('estado',{x:'fechar',k:K});E=j.estado;R[K]=j.relatorio;P[K]=P[K].map(o=>({...o,status:'feito'}));rK();rS();rP();rel(R[K]);aba(3)})}
 function rM(){const mm=K=='marmitas';$('t1').innerHTML=(mm?'<div class="card"><small>Cadastre os alimentos e toque em <b>Liberar</b> nos que entram nos pratos de hoje. Só os liberados aparecem para o cliente.</small></div>':'')+M.cats.filter(c=>mm?c.tipo:!c.tipo).map(c=>`<details ${op.has(c.id)?'open':''} ontoggle="tg(this,'${c.id}')"><summary>${c.nome}${c.tipo?' · '+c.itens.filter(i=>i.lib).length+' liberados':''}</summary>${c.itens.map((i,k)=>row(c,i,k)).join('')}<div class="it" style="background:#181818"><input class="n" id="nn${c.id}" placeholder="Novo item">${c.tipo?'':`<input class="p" id="np${c.id}" type="number" step="0.5" placeholder="R$"><input class="d" id="nd${c.id}" placeholder="Descrição (opcional)">`}<button class="b" onclick="add('${c.id}')">+</button></div></details>`).join('')+(mm?`<button class="k" style="width:100%;margin-bottom:10px" onclick="limpar()">Desmarcar todos os liberados</button><div class="card"><b>Preço da marmita</b><div class="row"><div><small>1 opção</small><input type="number" value="${M.p1}" onchange="setP(1,this.value)"></div><div><small>2 opções</small><input type="number" value="${M.p2}" onchange="setP(2,this.value)"></div></div></div>`:'')}
 const row=(c,i,k)=>c.tipo?`<div class="it"><input class="n" value="${esc(i.name)}" onchange="ed('${c.id}',${k},'name',this.value)"><button class="${i.lib?'v':'k'}" onclick="lib('${c.id}',${k})">${i.lib?'✔ Liberado':'Liberar'}</button><button class="r" onclick="del('${c.id}',${k})">✕</button></div>`:`<div class="it ${i.pausado?'off':''}"><input class="n" value="${esc(i.name)}" onchange="ed('${c.id}',${k},'name',this.value)"><input class="p" type="number" step="0.5" value="${i.price}" onchange="ed('${c.id}',${k},'price',+this.value)"><button class="k" onclick="ps('${c.id}',${k})">${i.pausado?'▶':'⏸'}</button><button class="r" onclick="del('${c.id}',${k})">✕</button><input class="d" value="${esc(i.desc)}" placeholder="descrição" onchange="ed('${c.id}',${k},'desc',this.value)"></div>`;
 const cat=id=>M.cats.find(c=>c.id==id);
@@ -974,7 +986,7 @@ function ed(c,k,f,v){cat(c).itens[k][f]=v;sv()}
 function ps(c,k){const i=cat(c).itens[k];i.pausado=!i.pausado;rM();sv()}
 function lib(c,k){const i=cat(c).itens[k];i.lib=!i.lib;rM();sv()}
 function limpar(){M.cats.filter(c=>c.tipo).forEach(c=>c.itens.forEach(i=>i.lib=false));rM();sv()}
-function del(c,k){if(!confirm('Excluir este item?'))return;cat(c).itens.splice(k,1);rM();sv()}
+function del(c,k){confirmar('Excluir este item?',()=>{cat(c).itens.splice(k,1);rM();sv()})}
 function add(c){const n=$('nn'+c).value.trim();if(!n)return;const ct=cat(c),id=Math.max(0,...M.cats.flatMap(x=>x.itens.map(i=>i.id||0)))+1;
 ct.itens.push(ct.tipo?{id,name:n,lib:false}:{id,name:n,desc:$('nd'+c).value.trim(),price:+$('np'+c).value||0});op.add(c);rM();sv()}
 function sv(){clearTimeout(T);$('sv').textContent='Salvando...';T=setTimeout(async()=>{try{await api('menu',{menu:M});$('sv').textContent='Salvo ✓'}catch(e){$('sv').textContent='Erro ao salvar'}},600)}
@@ -988,13 +1000,13 @@ function tg(el,id){el.open?op.add(id):op.delete(id)}
 function setP(n,v){M['p'+n]=+v;sv()}
 function abrirAdmin(){$('adm').classList.add('on');document.body.style.overflow='hidden';if(pin&&!ativo)entrar(true)}
 function fecharAdmin(){$('adm').classList.remove('on');document.body.style.overflow='';if(typeof carregar=='function')carregar()}
-function sair(){if(!confirm('Sair do painel neste aparelho?'))return;ls.set(pin='');ativo=false;clearInterval(iv);$('pin').value='';$('lg').hidden=false}
+function sair(){confirmar('Sair do painel neste aparelho?',()=>{ls.set(pin='');ativo=false;clearInterval(iv);$('pin').value='';$('lg').hidden=false})}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ativo)poll()});
 Object.assign(window,{sino,abrirAdmin,fecharAdmin,sair,entrar,setK,aba,est,fechar,ed,ps,lib,limpar,del,add,fin,parcial,zap,tg,setP});
 })();
 </script>
 <script>window.addEventListener("load",function(){if(LOJ){abrirAdmin()}})</script>
-<script>document.getElementById("tab-marmitas").addEventListener("click",function(e){if(estado.marmitas.aberta&&estado.marmitas.pausada){e.preventDefault();e.stopPropagation();showCustomAlert("A cozinha de marmitas está pausada no momento. Tente novamente em instantes.")}},true)</script>
+<script>document.body.appendChild(document.getElementById("custom-modal"));["lanches","marmitas"].forEach(function(k){document.getElementById("tab-"+k).addEventListener("click",function(e){var z=estado[k];if(!z.aberta||z.pausada){e.preventDefault();e.stopPropagation();showCustomAlert("A cozinha de "+k+" está "+(!z.aberta?"fechada":"pausada")+" no momento.")}},true)})</script>
 <button id="inst" style="display:none;position:fixed;left:10px;bottom:10px;z-index:99999;background:#222;color:#fff;border:0;border-radius:22px;padding:11px 16px;font-size:.95rem;box-shadow:0 2px 8px #0006">📲 Instalar app</button>
 <script>
 (function(){var dp,b=document.getElementById('inst');
