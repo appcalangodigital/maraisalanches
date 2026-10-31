@@ -580,8 +580,9 @@
 #adm.on{display:block}
 #btn-admin{position:absolute;top:8px;right:10px;font-size:.7rem;letter-spacing:1px;color:#777;cursor:pointer;padding:6px}
 header{position:relative}
+html.loj .footer-cart,html.loj #btn-admin{display:none!important}
 </style>
-<script>var LOJ=/[?&]lojista/.test(location.search),APP=LOJ||/[?&]app=1/.test(location.search);document.write('<link rel="manifest" href="'+(APP?'manifest-lojista.json':'manifest.json')+'"><meta name="theme-color" content="'+(APP?'#000000':'#e65100')+'"><link rel="apple-touch-icon" href="'+(APP?'lojista-icon-192.png':'icon-192.png')+'"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">');if(APP)document.title='M&L Lojista'</script>
+<script>var LOJ=/[?&]lojista/.test(location.search),APP=LOJ||/[?&]app=1/.test(location.search);document.write('<link rel="manifest" href="'+(APP?'manifest-lojista.json':'manifest.json')+'"><meta name="theme-color" content="'+(APP?'#000000':'#e65100')+'"><link rel="apple-touch-icon" href="'+(APP?'lojista-icon-192.png':'icon-192.png')+'"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">');if(APP)document.title='M&L Lojista';if(LOJ)document.documentElement.className+=' loj'</script>
 </head>
 <body>
 
@@ -1137,16 +1138,18 @@ document.getElementById("troco").addEventListener("keydown",function(e){if(e.key
 function isStandalone(){return window.matchMedia("(display-mode: standalone)").matches||navigator.standalone===true}
 function urlLojista(){return location.origin+location.pathname.replace(/[^\/]*$/,"")+"?lojista=1"}
 function abrirNoNavegador(){
-var u=urlLojista();
+/* sem a barra final do endereco: o Android nao entrega o link ao app do cliente (escopo termina em "/"),
+   o Chrome abre a pagina e o proprio GitHub Pages completa a barra */
+var u=urlLojista(),sem=u.replace(/\/\?lojista=1$/,"?lojista=1");
 if(/Android/i.test(navigator.userAgent)){
-var x=u.replace(/^https?:\/\//,"");
-location.href="intent://"+x+"#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url="+encodeURIComponent(u)+";end";
+location.href="intent://"+sem.replace(/^https?:\/\//,"")+"#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end";
 return}
 var msg="Para instalar o app do lojista: abra o Safari, cole o link copiado e toque em Compartilhar > Adicionar à Tela de Início.";
 try{navigator.clipboard.writeText(u).then(function(){showCustomAlert("Link copiado! "+msg)},function(){showCustomAlert(msg+" Link: "+u)})}catch(e){showCustomAlert(msg+" Link: "+u)}
 }
 function baixarLoj(ev){
 ev.preventDefault();
+if(isStandalone()){abrirNoNavegador();return false}
 function fb(){if(isStandalone())abrirNoNavegador();else location.href="?lojista=1"}
 if(!/Android/i.test(navigator.userAgent)||!("onbeforeinstallprompt" in window)){fb();return false}
 var m=document.querySelector('link[rel=manifest]'),old=m.getAttribute("href"),done=false,t;
