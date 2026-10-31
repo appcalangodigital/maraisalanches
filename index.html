@@ -22,6 +22,7 @@
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
+        html { background-color: #000; color-scheme: dark; }
         body {
             background-color: var(--black-bg);
             color: var(--text-light);
@@ -1119,7 +1120,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ativo)pol
 Object.assign(window,{setPer,zapTxt,sino,abrirAdmin,fecharAdmin,sair,entrar,setK,aba,est,fechar,ed,ps,lib,limpar,del,add,fin,parcial,zap,tg,setP});
 })();
 </script>
-<script>window.addEventListener("load",function(){if(APP&&(window.matchMedia("(display-mode: standalone)").matches||navigator.standalone)){var bl=document.getElementById("btn-loj");if(bl)bl.style.display="none"}if(LOJ){var st=window.matchMedia("(display-mode: standalone)").matches||navigator.standalone;{var o=document.createElement("div");o.id="ov-loj";o.style.cssText="position:fixed;inset:0;z-index:2147483646;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:Segoe UI,Roboto,Arial,sans-serif";o.innerHTML='<div style="font-size:3rem;color:#ffb020;font-style:italic;font-weight:bold">M&amp;L</div><div style="font-size:1.3rem;margin:8px 0 6px;font-weight:bold">App do Lojista</div><div id="ov-msg" style="color:#bbb;max-width:300px;line-height:1.4">'+(st?'Você está dentro do app do cliente. Toque no botão abaixo para abrir no navegador e instalar o app do lojista.':'Toque em qualquer lugar da tela para instalar o app. Depois de instalado, abra o app pela tela inicial e digite o PIN.')+'</div>'+(st?'<button type="button" onclick="event.stopPropagation();abrirNoNavegador()" style="margin-top:20px;padding:12px 22px;border:0;border-radius:22px;background:#ffb020;color:#000;font-weight:bold;font-size:1rem">🌐 Abrir no navegador e instalar</button>':'')+'<a href="./" onclick="event.stopPropagation()" style="margin-top:22px;color:#ffb020;font-size:.95rem">← Voltar ao cardápio</a>';o.onclick=function(){var x=document.getElementById("inst");if(x)x.click()};document.body.appendChild(o);window.addEventListener("appinstalled",function(){document.getElementById("ov-msg").textContent="App instalado! Agora abra o M&L Lojista pela tela inicial do celular."})}}})</script>
+<script>window.addEventListener("load",function(){if(APP&&(window.matchMedia("(display-mode: standalone)").matches||navigator.standalone)){var bl=document.getElementById("btn-loj");if(bl)bl.style.display="none"}if(LOJ){var st=window.matchMedia("(display-mode: standalone)").matches||navigator.standalone;{var o=document.createElement("div");o.id="ov-loj";o.style.cssText="position:fixed;inset:0;z-index:2147483646;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:Segoe UI,Roboto,Arial,sans-serif";o.innerHTML='<div style="font-size:3rem;color:#ffb020;font-style:italic;font-weight:bold">M&amp;L</div><div style="font-size:1.2rem;margin:6px 0 22px;font-weight:bold">App do Lojista</div><button type="button" style="padding:14px 30px;border:0;border-radius:24px;background:#ffb020;color:#000;font-weight:bold;font-size:1.05rem" '+(st?'onclick="event.stopPropagation();abrirNoNavegador()"':'')+'>📲 Instalar</button>';o.onclick=function(){var x=document.getElementById("inst");if(x)x.click()};document.body.appendChild(o);window.addEventListener("appinstalled",function(){o.innerHTML='<div style="font-size:3rem;color:#ffb020;font-style:italic;font-weight:bold">M&amp;L</div><div style="margin-top:10px;font-weight:bold">App instalado ✓</div>'})}}})</script>
 <script>document.body.appendChild(document.getElementById("custom-modal"));["lanches","marmitas"].forEach(function(k){document.getElementById("tab-"+k).addEventListener("click",function(e){var z=estado[k];if(!z.aberta||z.pausada){e.preventDefault();e.stopPropagation();showCustomAlert("A cozinha de "+k+" está "+(!z.aberta?"fechada":"pausada")+" no momento.")}},true)})</script>
 <script>(function(){
 var o=document.getElementById("entrega-modal"),vv=window.visualViewport;
@@ -1138,30 +1139,28 @@ function urlLojista(){return location.origin+location.pathname.replace(/[^\/]*$/
 function abrirNoNavegador(){
 var u=urlLojista();
 if(/Android/i.test(navigator.userAgent)){
-/* abre o Chrome fora do app do cliente; a pagina ?lojista=1 la oferece a instalacao */
 var x=u.replace(/^https?:\/\//,"");
 location.href="intent://"+x+"#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url="+encodeURIComponent(u)+";end";
 return}
-/* iPhone/outros: nao da para sair do app sozinho; copia o link e explica */
 var msg="Para instalar o app do lojista: abra o Safari, cole o link copiado e toque em Compartilhar > Adicionar à Tela de Início.";
 try{navigator.clipboard.writeText(u).then(function(){showCustomAlert("Link copiado! "+msg)},function(){showCustomAlert(msg+" Link: "+u)})}catch(e){showCustomAlert(msg+" Link: "+u)}
 }
 function baixarLoj(ev){
-if(isStandalone()){ev.preventDefault();abrirNoNavegador();return false}
-if(!/Android/i.test(navigator.userAgent)||!("onbeforeinstallprompt" in window))return true;
 ev.preventDefault();
-var m=document.querySelector('link[rel=manifest]'),old=m.getAttribute("href"),done=false;
-function bip(e){e.preventDefault();done=true;try{e.prompt();e.userChoice.then(function(){m.setAttribute("href",old)})}catch(x){location.href="?lojista=1"}}
+function fb(){if(isStandalone())abrirNoNavegador();else location.href="?lojista=1"}
+if(!/Android/i.test(navigator.userAgent)||!("onbeforeinstallprompt" in window)){fb();return false}
+var m=document.querySelector('link[rel=manifest]'),old=m.getAttribute("href"),done=false,t;
+function bip(e){e.preventDefault();done=true;clearTimeout(t);try{e.prompt();e.userChoice.then(function(){m.setAttribute("href",old)})}catch(x){m.setAttribute("href",old);fb()}}
 window.addEventListener("beforeinstallprompt",bip,{once:true});
 m.setAttribute("href","manifest-lojista.json");
-setTimeout(function(){if(!done){window.removeEventListener("beforeinstallprompt",bip);m.setAttribute("href",old);location.href="?lojista=1"}},2500);
+t=setTimeout(function(){if(!done){window.removeEventListener("beforeinstallprompt",bip);m.setAttribute("href",old);fb()}},2500);
 return false}
 </script>
 <button id="inst" style="display:none;position:fixed;left:10px;bottom:10px;z-index:99999;background:#222;color:#fff;border:0;border-radius:22px;padding:11px 16px;font-size:.95rem;box-shadow:0 2px 8px #0006">📲 Instalar app</button>
 <script>
 (function(){var dp,b=document.getElementById(LOJ?'inst':'btn-cli');
 if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone)return;
-b.style.display=LOJ?'block':'inline-block';if(LOJ){b.textContent='📲 Baixar app lojista';b.style.zIndex='2147483647';b.style.left='50%';b.style.transform='translateX(-50%)';b.style.bottom='28px';b.style.background='#ffb020';b.style.color='#000';b.style.fontWeight='bold';b.style.whiteSpace='nowrap'}
+b.style.display=LOJ?'none':'inline-block';if(LOJ){b.textContent='📲 Baixar app lojista';b.style.zIndex='2147483647';b.style.left='50%';b.style.transform='translateX(-50%)';b.style.bottom='28px';b.style.background='#ffb020';b.style.color='#000';b.style.fontWeight='bold';b.style.whiteSpace='nowrap'}
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e});
 b.onclick=function(){if(dp){try{dp.prompt()}catch(x){}dp=null}else{alert(/iPhone|iPad/.test(navigator.userAgent)?'No iPhone: toque no botão Compartilhar (quadrado com seta) e depois em "Adicionar à Tela de Início".':'No Android: toque nos 3 pontinhos do navegador e depois em "Instalar app" ou "Adicionar à tela inicial".')}};
 window.addEventListener('appinstalled',function(){b.style.display='none'});
