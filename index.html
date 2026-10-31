@@ -311,27 +311,59 @@
             background: rgba(245, 166, 35, 0.15);
         }
 
+        /* ===== POPUP DE ENTREGA: cabe na area visivel (acima do teclado), botoes sempre a vista ===== */
         #entrega-modal {
-            align-items: flex-start;
-            overflow-y: auto;
-            padding: 10px 0;
+            align-items: center;
+            overflow: hidden;
+            padding: 6px 0;
             box-sizing: border-box;
         }
         #entrega-modal .custom-modal {
-            margin: auto;
-            max-height: calc(100% - 16px) !important;
-            padding: 22px 20px;
-            scroll-padding: 20px;
+            display: flex;
+            flex-direction: column;
+            width: 92%;
+            max-width: 420px;
+            max-height: calc(100% - 4px) !important;
+            margin: 0;
+            padding: 0;
+            overflow: hidden !important;
+            text-align: left;
         }
-        #entrega-modal .form-group {
-            margin-bottom: 20px;
+        #entrega-modal .em-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            padding: 18px 18px 4px;
         }
-        #entrega-modal .form-group label {
-            margin-bottom: 8px;
+        #entrega-modal .em-foot {
+            flex: 0 0 auto;
+            display: flex;
+            gap: 10px;
+            padding: 10px 18px 14px;
+            border-top: 1px solid #333;
+            background: #1e1e1e;
         }
-        #entrega-modal .form-section-title {
-            margin-bottom: 20px;
-        }
+        #entrega-modal .form-group { margin-bottom: 14px; }
+        #entrega-modal .form-group label { margin-bottom: 6px; }
+        #entrega-modal .form-section-title { margin: 0 0 14px; }
+        #entrega-modal .em-row { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 14px; }
+        #entrega-modal .em-row.troco-on { grid-template-columns: 1.2fr 1fr; }
+        #entrega-modal .em-row .form-group { margin: 0; min-width: 0; }
+        #entrega-modal .em-foot .modal-btn { flex: 1; width: auto; padding: 13px 10px; }
+
+        /* teclado aberto: modo compacto (mesmo visual, menos espaco vazio) */
+        #entrega-modal.kb .em-body { padding: 10px 14px 2px; }
+        #entrega-modal.kb .form-section-title { font-size: .95rem; margin-bottom: 8px; padding-bottom: 4px; }
+        #entrega-modal.kb .form-group, #entrega-modal.kb .em-row { margin-bottom: 8px; }
+        #entrega-modal.kb .form-group label { font-size: .85rem; margin-bottom: 3px; }
+        #entrega-modal.kb .form-group input,
+        #entrega-modal.kb .form-group select,
+        #entrega-modal.kb .form-group textarea { padding: 8px 10px; }
+        #entrega-modal.kb .form-group textarea { min-height: 0; }
+        #entrega-modal.kb .em-foot { padding: 8px 14px 10px; }
+        #entrega-modal.kb .em-foot .modal-btn { padding: 11px 8px; }
 
         .form-group label.checkbox-item {
             display: flex;
@@ -606,31 +638,35 @@ header{position:relative}
 
     <!-- MODAL ENTREGA -->
     <div id="entrega-modal" class="custom-modal-overlay" style="z-index:999990">
-        <div class="custom-modal" style="max-width:420px;text-align:left;max-height:92vh;overflow-y:auto">
-            <h2 class="form-section-title" style="margin-top:0">Dados para Entrega</h2>
-        <div class="form-group">
-            <label for="name">Nome do Cliente:</label>
-            <input type="text" id="name" placeholder="Ex: João Silva">
-        </div>
-        <div class="form-group">
-            <label for="address">Endereço Completo de Entrega:</label>
-            <textarea id="address" rows="2" placeholder="Rua, número, bairro e ponto de referência"></textarea>
-        </div>
-        <div class="form-group">
-            <label for="payment">Forma de Pagamento:</label>
-            <select id="payment" onchange="togglePaymentInfo()">
-                <option value="Pix">Pix</option>
-                <option value="Cartão">Cartão (Pagamento no ato da entrega)</option>
-                <option value="Dinheiro">Dinheiro</option>
-            </select>
-        </div>
-        <div class="form-group" id="troco-group" style="display: none;">
-            <label for="troco">Troco para quanto?</label>
-            <input type="text" id="troco" placeholder="Ex: R$ 50,00">
-        </div>
-            <div style="display:flex;gap:10px;margin-top:18px">
-                <button class="modal-btn" style="flex:1;width:auto;background:#444;color:#fff" onclick="fecharEntrega()">Voltar</button>
-                <button class="modal-btn" style="flex:1;width:auto" onclick="enviarPedido()">Enviar pedido</button>
+        <div class="custom-modal">
+            <div class="em-body">
+                <h2 class="form-section-title">Dados para Entrega</h2>
+                <div class="form-group">
+                    <label for="name">Nome do Cliente:</label>
+                    <input type="text" id="name" placeholder="Ex: João Silva" autocomplete="name" enterkeyhint="next">
+                </div>
+                <div class="form-group">
+                    <label for="address">Endereço Completo de Entrega:</label>
+                    <textarea id="address" rows="2" placeholder="Rua, número, bairro e ponto de referência" autocomplete="street-address"></textarea>
+                </div>
+                <div class="em-row" id="pay-row">
+                    <div class="form-group">
+                        <label for="payment">Forma de Pagamento:</label>
+                        <select id="payment" onchange="togglePaymentInfo(true)">
+                            <option value="Pix">Pix</option>
+                            <option value="Cartão">Cartão (Pagamento no ato da entrega)</option>
+                            <option value="Dinheiro">Dinheiro</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="troco-group" style="display: none;">
+                        <label for="troco">Troco para:</label>
+                        <input type="text" id="troco" inputmode="decimal" placeholder="R$ 50,00" enterkeyhint="done">
+                    </div>
+                </div>
+            </div>
+            <div class="em-foot">
+                <button class="modal-btn" style="background:#444;color:#fff" onclick="fecharEntrega()">Voltar</button>
+                <button class="modal-btn" onclick="enviarPedido()">Enviar pedido</button>
             </div>
         </div>
     </div>
@@ -880,9 +916,13 @@ header{position:relative}
             document.getElementById('total-display').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
         }
 
-        function togglePaymentInfo() {
+        function togglePaymentInfo(foco) {
             const payment = document.getElementById('payment').value;
-            document.getElementById('troco-group').style.display = payment === 'Dinheiro' ? 'block' : 'none';
+            const dinheiro = payment === 'Dinheiro';
+            document.getElementById('troco-group').style.display = dinheiro ? 'block' : 'none';
+            document.getElementById('pay-row').classList.toggle('troco-on', dinheiro);
+            // Dinheiro: ja leva o cursor para o troco (menos um toque para o cliente)
+            if (dinheiro && foco === true) setTimeout(function () { document.getElementById('troco').focus({ preventScroll: true }); }, 200);
         }
 
         function novoPedido() {
@@ -907,6 +947,7 @@ header{position:relative}
             if (marmitas.length && !okK('marmitas')) { showCustomAlert("A cozinha de marmitas não está recebendo pedidos agora."); return; }
             document.querySelector('.footer-cart').style.display = 'none';
             document.getElementById('entrega-modal').classList.add('active');
+            if (window.ajEntrega) ajEntrega();
         }
 
         function fecharEntrega() {
@@ -921,7 +962,8 @@ header{position:relative}
             const name = document.getElementById('name').value;
             const address = document.getElementById('address').value;
             const payment = document.getElementById('payment').value;
-            const troco = document.getElementById('troco').value;
+            let troco = document.getElementById('troco').value.trim();
+            if (/^[\d.,]+$/.test(troco)) troco = 'R$ ' + troco;
 
             let hasItems = false;
             Object.keys(cart).forEach(id => { if (cart[id].qty > 0) hasItems = true; });
@@ -1077,13 +1119,35 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ativo)pol
 Object.assign(window,{setPer,zapTxt,sino,abrirAdmin,fecharAdmin,sair,entrar,setK,aba,est,fechar,ed,ps,lib,limpar,del,add,fin,parcial,zap,tg,setP});
 })();
 </script>
-<script>window.addEventListener("load",function(){if(window.matchMedia("(display-mode: standalone)").matches||navigator.standalone){var bl=document.getElementById("btn-loj");if(bl)bl.style.display="none"}if(LOJ){var st=window.matchMedia("(display-mode: standalone)").matches||navigator.standalone;{var o=document.createElement("div");o.id="ov-loj";o.style.cssText="position:fixed;inset:0;z-index:2147483646;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:Segoe UI,Roboto,Arial,sans-serif";o.innerHTML='<div style="font-size:3rem;color:#ffb020;font-style:italic;font-weight:bold">M&amp;L</div><div style="font-size:1.3rem;margin:8px 0 6px;font-weight:bold">App do Lojista</div><div id="ov-msg" style="color:#bbb;max-width:300px;line-height:1.4">'+(st?'Você está dentro do app do cliente. Para instalar o app do lojista, abra o endereço do cardápio no navegador (Chrome ou Safari), fora do app, e toque em Baixar app lojista.':'Toque em qualquer lugar da tela para instalar o app. Depois de instalado, abra o app pela tela inicial e digite o PIN.')+'</div><a href="./" onclick="event.stopPropagation()" style="margin-top:22px;color:#ffb020;font-size:.95rem">← Voltar ao cardápio</a>';o.onclick=function(){var x=document.getElementById("inst");if(x)x.click()};document.body.appendChild(o);window.addEventListener("appinstalled",function(){document.getElementById("ov-msg").textContent="App instalado! Agora abra o M&L Lojista pela tela inicial do celular."})}}})</script>
+<script>window.addEventListener("load",function(){if(APP&&(window.matchMedia("(display-mode: standalone)").matches||navigator.standalone)){var bl=document.getElementById("btn-loj");if(bl)bl.style.display="none"}if(LOJ){var st=window.matchMedia("(display-mode: standalone)").matches||navigator.standalone;{var o=document.createElement("div");o.id="ov-loj";o.style.cssText="position:fixed;inset:0;z-index:2147483646;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:Segoe UI,Roboto,Arial,sans-serif";o.innerHTML='<div style="font-size:3rem;color:#ffb020;font-style:italic;font-weight:bold">M&amp;L</div><div style="font-size:1.3rem;margin:8px 0 6px;font-weight:bold">App do Lojista</div><div id="ov-msg" style="color:#bbb;max-width:300px;line-height:1.4">'+(st?'Você está dentro do app do cliente. Toque no botão abaixo para abrir no navegador e instalar o app do lojista.':'Toque em qualquer lugar da tela para instalar o app. Depois de instalado, abra o app pela tela inicial e digite o PIN.')+'</div>'+(st?'<button type="button" onclick="event.stopPropagation();abrirNoNavegador()" style="margin-top:20px;padding:12px 22px;border:0;border-radius:22px;background:#ffb020;color:#000;font-weight:bold;font-size:1rem">🌐 Abrir no navegador e instalar</button>':'')+'<a href="./" onclick="event.stopPropagation()" style="margin-top:22px;color:#ffb020;font-size:.95rem">← Voltar ao cardápio</a>';o.onclick=function(){var x=document.getElementById("inst");if(x)x.click()};document.body.appendChild(o);window.addEventListener("appinstalled",function(){document.getElementById("ov-msg").textContent="App instalado! Agora abra o M&L Lojista pela tela inicial do celular."})}}})</script>
 <script>document.body.appendChild(document.getElementById("custom-modal"));["lanches","marmitas"].forEach(function(k){document.getElementById("tab-"+k).addEventListener("click",function(e){var z=estado[k];if(!z.aberta||z.pausada){e.preventDefault();e.stopPropagation();showCustomAlert("A cozinha de "+k+" está "+(!z.aberta?"fechada":"pausada")+" no momento.")}},true)})</script>
-<script>(function(){var o=document.getElementById("entrega-modal");function aj(){if(window.visualViewport){o.style.height=visualViewport.height+"px";o.style.top=visualViewport.offsetTop+"px";var f=document.activeElement;if(f&&o.contains(f)&&f!==o)setTimeout(function(){f.scrollIntoView({block:"center",behavior:"smooth"})},80)}}
-if(window.visualViewport){visualViewport.addEventListener("resize",aj);visualViewport.addEventListener("scroll",aj)}
-o.addEventListener("focusin",function(e){setTimeout(function(){e.target.scrollIntoView({block:"center",behavior:"smooth"})},400)})})()</script>
+<script>(function(){
+var o=document.getElementById("entrega-modal"),vv=window.visualViewport;
+function aj(){
+  if(vv){o.style.height=vv.height+"px";o.style.top=vv.offsetTop+"px";o.classList.toggle("kb",vv.height<600)}
+  var f=document.activeElement;
+  if(f&&o.contains(f)&&f!==o&&f.scrollIntoView)setTimeout(function(){f.scrollIntoView({block:"nearest"})},60)
+}
+window.ajEntrega=aj;
+if(vv){vv.addEventListener("resize",aj);vv.addEventListener("scroll",aj)}
+document.getElementById("troco").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();this.blur()}});
+})()</script>
 <script>
+function isStandalone(){return window.matchMedia("(display-mode: standalone)").matches||navigator.standalone===true}
+function urlLojista(){return location.origin+location.pathname.replace(/[^\/]*$/,"")+"?lojista=1"}
+function abrirNoNavegador(){
+var u=urlLojista();
+if(/Android/i.test(navigator.userAgent)){
+/* abre o Chrome fora do app do cliente; a pagina ?lojista=1 la oferece a instalacao */
+var x=u.replace(/^https?:\/\//,"");
+location.href="intent://"+x+"#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url="+encodeURIComponent(u)+";end";
+return}
+/* iPhone/outros: nao da para sair do app sozinho; copia o link e explica */
+var msg="Para instalar o app do lojista: abra o Safari, cole o link copiado e toque em Compartilhar > Adicionar à Tela de Início.";
+try{navigator.clipboard.writeText(u).then(function(){showCustomAlert("Link copiado! "+msg)},function(){showCustomAlert(msg+" Link: "+u)})}catch(e){showCustomAlert(msg+" Link: "+u)}
+}
 function baixarLoj(ev){
+if(isStandalone()){ev.preventDefault();abrirNoNavegador();return false}
 if(!/Android/i.test(navigator.userAgent)||!("onbeforeinstallprompt" in window))return true;
 ev.preventDefault();
 var m=document.querySelector('link[rel=manifest]'),old=m.getAttribute("href"),done=false;
