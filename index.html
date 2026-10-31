@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
     <title>M&L Pastel Delivery - Cardápio Digital</title>
     <style>
         :root {
@@ -319,6 +319,18 @@
         }
         #entrega-modal .custom-modal {
             margin: auto;
+            max-height: calc(100% - 16px) !important;
+            padding: 22px 20px;
+            scroll-padding: 20px;
+        }
+        #entrega-modal .form-group {
+            margin-bottom: 20px;
+        }
+        #entrega-modal .form-group label {
+            margin-bottom: 8px;
+        }
+        #entrega-modal .form-section-title {
+            margin-bottom: 20px;
         }
 
         .form-group label.checkbox-item {
@@ -1067,9 +1079,9 @@ Object.assign(window,{setPer,zapTxt,sino,abrirAdmin,fecharAdmin,sair,entrar,setK
 </script>
 <script>window.addEventListener("load",function(){if(LOJ){var st=window.matchMedia("(display-mode: standalone)").matches||navigator.standalone;if(/[?&]app=1/.test(location.search)){abrirAdmin()}else{var o=document.createElement("div");o.id="ov-loj";o.style.cssText="position:fixed;inset:0;z-index:2147483646;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:Segoe UI,Roboto,Arial,sans-serif";o.innerHTML='<div style="font-size:3rem;color:#ffb020;font-style:italic;font-weight:bold">M&amp;L</div><div style="font-size:1.3rem;margin:8px 0 6px;font-weight:bold">App do Lojista</div><div id="ov-msg" style="color:#bbb;max-width:300px;line-height:1.4">'+(st?'Você está dentro do app do cliente. Para instalar o app do lojista, abra o endereço do cardápio no navegador (Chrome ou Safari), fora do app, e toque em Baixar app lojista.':'Toque no botão abaixo para instalar o app no seu celular. Depois de instalado, abra o app pela tela inicial e digite o PIN.')+'</div><a href="./" style="margin-top:22px;color:#ffb020;font-size:.95rem">← Voltar ao cardápio</a>';document.body.appendChild(o);window.addEventListener("appinstalled",function(){document.getElementById("ov-msg").textContent="App instalado! Agora abra o M&L Lojista pela tela inicial do celular."})}}})</script>
 <script>document.body.appendChild(document.getElementById("custom-modal"));["lanches","marmitas"].forEach(function(k){document.getElementById("tab-"+k).addEventListener("click",function(e){var z=estado[k];if(!z.aberta||z.pausada){e.preventDefault();e.stopPropagation();showCustomAlert("A cozinha de "+k+" está "+(!z.aberta?"fechada":"pausada")+" no momento.")}},true)})</script>
-<script>(function(){var o=document.getElementById("entrega-modal");function aj(){if(window.visualViewport){o.style.height=visualViewport.height+"px";o.style.top=visualViewport.offsetTop+"px"}}
+<script>(function(){var o=document.getElementById("entrega-modal");function aj(){if(window.visualViewport){o.style.height=visualViewport.height+"px";o.style.top=visualViewport.offsetTop+"px";var f=document.activeElement;if(f&&o.contains(f)&&f!==o)setTimeout(function(){f.scrollIntoView({block:"center",behavior:"smooth"})},80)}}
 if(window.visualViewport){visualViewport.addEventListener("resize",aj);visualViewport.addEventListener("scroll",aj)}
-o.addEventListener("focusin",function(e){setTimeout(function(){e.target.scrollIntoView({block:"center",behavior:"smooth"})},300)})})()</script>
+o.addEventListener("focusin",function(e){setTimeout(function(){e.target.scrollIntoView({block:"center",behavior:"smooth"})},400)})})()</script>
 <button id="inst" style="display:none;position:fixed;left:10px;bottom:10px;z-index:99999;background:#222;color:#fff;border:0;border-radius:22px;padding:11px 16px;font-size:.95rem;box-shadow:0 2px 8px #0006">📲 Instalar app</button>
 <script>
 (function(){var dp,b=document.getElementById(LOJ?'inst':'btn-cli');
