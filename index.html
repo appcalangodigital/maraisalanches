@@ -697,7 +697,7 @@ html.loj .footer-cart,html.loj #btn-admin{display:none!important}
 
     <div id="adm">
 <div class="hd"><button class="k" style="padding:8px 12px;font-size:.9rem" onclick="fecharAdmin()">← Cardápio</button><span>Painel</span><button class="k" style="padding:8px 12px;font-size:.9rem" onclick="sair()">Sair</button></div>
-<div id="lg"><b style="color:var(--g)">Digite o PIN</b><input id="pin" type="password" inputmode="numeric" style="max-width:240px;text-align:center"><button class="b" onclick="entrar()">Entrar</button><small id="lge"></small></div>
+<div id="lg"><b style="color:var(--g)">Digite o PIN</b><input id="pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" oninput="this.value=this.value.replace(/\D/g,'')" style="max-width:240px;text-align:center"><button class="b" onclick="entrar()">Entrar</button><small id="lge"></small></div>
 <div class="w">
 <div class="sw"><button id="k_lanches" onclick="setK('lanches')"></button><button id="k_marmitas" onclick="setK('marmitas')"></button></div>
 <div id="stt" class="st"></div><div id="ctl" class="row"></div>
