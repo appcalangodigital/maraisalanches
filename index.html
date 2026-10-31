@@ -515,6 +515,7 @@
 #btn-admin{position:absolute;top:8px;right:10px;font-size:.7rem;letter-spacing:1px;color:#777;cursor:pointer;padding:6px}
 header{position:relative}
 </style>
+<script>var LOJ=/[?&]lojista/.test(location.search);document.write('<link rel="manifest" href="'+(LOJ?'manifest-lojista.json':'manifest.json')+'"><meta name="theme-color" content="'+(LOJ?'#000000':'#e65100')+'"><link rel="apple-touch-icon" href="'+(LOJ?'lojista-icon-192.png':'icon-192.png')+'"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">');if(LOJ)document.title='M&L Lojista - Pedidos'</script>
 </head>
 <body>
 
@@ -522,9 +523,10 @@ header{position:relative}
         <a id="btn-admin" onclick="abrirAdmin()">ADMIN</a>
         <div class="logo-container">
             <div class="logo-title">M&L</div>
-            <div class="logo-subtitle">Pastel</div>
+            <div class="logo-subtitle">Lanches</div>
         </div>
         <div class="tagline">— SABOR QUE VIRA PAIXÃO! —</div>
+        <a id="btn-loj" href="?lojista=1" style="display:inline-block;margin-top:10px;padding:8px 16px;border-radius:20px;background:#000;color:#ffb020;font-size:.85rem;font-weight:bold;text-decoration:none;border:1px solid #ffb020">📲 Baixar app lojista</a>
     </header>
 
     <div class="nav-tabs">
@@ -989,6 +991,18 @@ function fecharAdmin(){$('adm').classList.remove('on');document.body.style.overf
 function sair(){if(!confirm('Sair do painel neste aparelho?'))return;ls.set(pin='');ativo=false;clearInterval(iv);$('pin').value='';$('lg').hidden=false}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ativo)poll()});
 Object.assign(window,{sino,abrirAdmin,fecharAdmin,sair,entrar,setK,aba,est,fechar,ed,ps,lib,limpar,del,add,fin,parcial,zap,tg,setP});
+})();
+</script>
+<script>window.addEventListener("load",function(){if(LOJ){abrirAdmin()}})</script>
+<button id="inst" style="display:none;position:fixed;left:10px;bottom:10px;z-index:99999;background:#222;color:#fff;border:0;border-radius:22px;padding:11px 16px;font-size:.95rem;box-shadow:0 2px 8px #0006">📲 Instalar app</button>
+<script>
+(function(){var dp,b=document.getElementById('inst');
+if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone)return;
+b.style.display='block';
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e});
+b.onclick=function(){if(dp){dp.prompt();dp=null}else{alert(/iPhone|iPad/.test(navigator.userAgent)?'No iPhone: toque no botão Compartilhar (quadrado com seta) e depois em "Adicionar à Tela de Início".':'No Android: toque nos 3 pontinhos do navegador e depois em "Instalar app" ou "Adicionar à tela inicial".')}};
+window.addEventListener('appinstalled',function(){b.style.display='none'});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
 })();
 </script>
 </body>
